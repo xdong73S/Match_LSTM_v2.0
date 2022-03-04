@@ -77,7 +77,7 @@ class MatchLSTM(torch.nn.Module):
         """
         context_char and question_char not used
         """
-
+       
         # get embedding: (seq_len, batch, embedding_size)
         context_vec, context_mask = self.embedding.forward(context)
         question_vec, question_mask = self.embedding.forward(question)
@@ -85,7 +85,6 @@ class MatchLSTM(torch.nn.Module):
         # encode: (seq_len, batch, hidden_size)
         context_encode, _ = self.encoder.forward(context_vec, context_mask)
         question_encode, _ = self.encoder.forward(question_vec, question_mask)
-
         # match lstm: (seq_len, batch, hidden_size)
         qt_aware_ct, qt_aware_last_hidden, match_para = self.match_rnn.forward(context_encode, context_mask,
                                                                                question_encode, question_mask)

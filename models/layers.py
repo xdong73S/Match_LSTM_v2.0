@@ -28,7 +28,6 @@ class GloveEmbedding(torch.nn.Module):
         super(GloveEmbedding, self).__init__()
         self.dataset_h5_path = dataset_h5_path
         n_embeddings, len_embedding, weights = self.load_glove_hdf5()
-
         self.embedding_layer = torch.nn.Embedding(num_embeddings=n_embeddings, embedding_dim=len_embedding,
                                                   _weight=weights)
         self.embedding_layer.weight.requires_grad = False
@@ -701,7 +700,6 @@ class MyRNNBase(torch.nn.Module):
             v = v.view(-1, input_size)
             v = self.layer_norm(v)
             v = v.view(seq_len, batch, input_size)
-
         # get sorted v
         lengths = mask.eq(1).long().sum(1)
         lengths_sort, idx_sort = torch.sort(lengths, dim=0, descending=True)
@@ -712,7 +710,6 @@ class MyRNNBase(torch.nn.Module):
         v_dropout = self.dropout.forward(v_pack.data)
         v_pack_dropout = torch.nn.utils.rnn.PackedSequence(v_dropout, v_pack.batch_sizes)
 
-        
         o_pack_dropout, _ = self.hidden.forward(v_pack_dropout)
         o, _ = torch.nn.utils.rnn.pad_packed_sequence(o_pack_dropout)
 

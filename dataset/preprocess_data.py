@@ -22,7 +22,8 @@ class PreprocessData:
     """
     preprocess dataset and glove embedding to hdf5 files
     """
-
+    noans = '__noans__'
+    noans_idx = 1
     padding = '__padding__'  # id = 0
     padding_idx = 0  # all the features padding idx, exclude answer_range
     answer_padding_idx = -1
@@ -43,19 +44,19 @@ class PreprocessData:
         self._max_answer_len = 0
 
         # temp data
-        self._word2id = {self.padding: 0}
+        self._word2id = {self.padding: 0, self.noans: 1}
         self._char2id = {self.padding: 0, '`': 1}  # because nltk word tokenize will replace '"' with '``'
-        self._pos2id = {self.padding: 0}
-        self._ent2id = {self.padding: 0}
-        self._word2vec = {self.padding: [0. for i in range(self._embedding_size)]}
+        self._pos2id = {self.padding: 0, self.noans: 1}
+        self._ent2id = {self.padding: 0, self.noans: 1}
+        self._word2vec = {self.padding: [0. for i in range(self._embedding_size)], self.noans: [0. for i in range(self._embedding_size)]}
         self._oov_num = 0
 
         # data need to store in hdf5 file
-        self._meta_data = {'id2vec': [[0. for i in range(self._embedding_size)]],
-                           'id2word': [self.padding],
+        self._meta_data = {'id2vec': [[0. for i in range(self._embedding_size)], [0. for i in range(self._embedding_size)]],
+                           'id2word': [self.padding, self.noans],
                            'id2char': [self.padding, '`'],
-                           'id2pos': [self.padding],
-                           'id2ent': [self.padding]}
+                           'id2pos': [self.padding, self.noans],
+                           'id2ent': [self.padding, self.noans]}
         self._data = {}
         self._attr = {}
 
@@ -185,7 +186,7 @@ class PreprocessData:
                 if len(cur_answers) == 0:
                     cur_ans_range_ids = [-1, -1]
                 
-                #cur_ans_range_ids = [x + 1 for x in cur_ans_range_ids]
+                cur_ans_range_ids = [x + 1 for x in cur_ans_range_ids]
                 answers_range_wid.append(cur_ans_range_ids)
 
                 cnt += 1
@@ -269,9 +270,9 @@ class PreprocessData:
                     self._meta_data['id2ent'].append(ent)
                 sentence['ent'].append(self._ent2id[ent])
 
-        #sentence['token'].insert(0, 0)
-        #sentence['pos'].insert(0,0)
-        #sentence['ent'].insert(0,0)
+        sentence['token'].insert(0, self.noans_idx)
+        sentence['pos'].insert(0, self.noans_idx)
+        sentence['ent'].insert(0, self.noans_idx)
         return sentence
 
     def _update_to_char(self, sentence):
@@ -299,9 +300,6 @@ class PreprocessData:
             word_num = 0
             with zf.open(glove_name) as f:
                 for line in f:
-                    if word_num == 60000:
-                        logger.info("??????????????????")
-                        break
                     line_split = line.decode('utf-8').split(' ')
                     self._word2vec[line_split[0]] = [float(x) for x in line_split[1:]]
 

@@ -23,6 +23,7 @@ def eval_on_model(model, criterion, batch_data, epoch, device):
     batch_cnt = len(batch_data)
     dev_data_size = 0
     num_em = 0
+    num_avna = 0
     score_f1 = 0.
     sum_loss = 0.
 
@@ -48,15 +49,17 @@ def eval_on_model(model, criterion, batch_data, epoch, device):
         for i in range(tmp_size):
             if evaluate_em(tmp_ans_range[i].cpu().numpy(), bat_answer_range[i].cpu().numpy()):
                 num_em += 1
+            if evaluate_avna(tmp_ans_range[i].cpu().numpy(), bat_answer_range[i].cpu().numpy()):
+                num_avna += 1
             score_f1 += evaluate_f1(bat_context[i].cpu().numpy(),
                                     tmp_ans_range[i].cpu().numpy(),
                                     bat_answer_range[i].cpu().numpy())
         if epoch is None:
-            logger.info('test: batch=%d/%d, cur_score_em=%.2f, cur_score_f1=%.2f, batch_loss=%.5f' %
-                        (bnum, batch_cnt, num_em * 1. / dev_data_size, score_f1 / dev_data_size, batch_loss))
+            logger.info('test: batch=%d/%d, cur_score_em=%.2f, cur_score_f1=%.2f, cur_score_avna=%.2f, batch_loss=%.5f' %
+                        (bnum, batch_cnt, num_em * 1. / dev_data_size, score_f1 / dev_data_size, num_avna * 1. / dev_data_size, batch_loss))
         else:
-            logger.info('epoch=%d, batch=%d/%d, cur_score_em=%.2f, cur_score_f1=%.2f, batch_loss=%.5f' %
-                        (epoch, bnum, batch_cnt, num_em * 1. / dev_data_size, score_f1 / dev_data_size, batch_loss))
+            logger.info('epoch=%d, batch=%d/%d, cur_score_em=%.2f, cur_score_f1=%.2f, cur_score_avna=%.2f, batch_loss=%.5f' %
+                        (epoch, bnum, batch_cnt, num_em * 1. / dev_data_size, score_f1 / dev_data_size, num_avna * 1. / dev_data_size, batch_loss))
 
         # manual release memory, todo: really effect?
         del bat_context, bat_answer_range, batch, batch_input
@@ -65,9 +68,10 @@ def eval_on_model(model, criterion, batch_data, epoch, device):
 
     score_em = num_em * 100.0 / dev_data_size
     score_f1 = score_f1 * 100.0 / dev_data_size
+    score_avna = num_avna * 100.0 / dev_data_size
 
     logger.info("eval data size: %d" % dev_data_size)
-    return score_em, score_f1, sum_loss
+    return score_em, score_f1, score_avna, sum_loss
 
 
 # ---------------------------------------------------------------------------------
@@ -93,6 +97,12 @@ def evaluate_em(y_pred, y_true):
 
     return False
 
+def evaluate_avna(y_pred, y_true):
+    if y_true[0] == 0 and y_pred[0] == 0 and y_pred[1] == 0:
+        return True
+    elif y_true[0] != 0 and y_pred[0] != 0 and y_pred[1] != 0:
+        return True
+    return False
 
 def evaluate_f1(context_tokens, y_pred, y_true):
     """

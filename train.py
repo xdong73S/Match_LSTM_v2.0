@@ -113,14 +113,14 @@ def train(config_path):
         # evaluate
         with torch.no_grad():
             model.eval()  # let training = False, make sure right dropout
-            valid_score_em, valid_score_f1, valid_loss = eval_on_model(model=model,
+            valid_score_em, valid_score_f1, valid_avna, valid_loss = eval_on_model(model=model,
                                                                        criterion=criterion,
                                                                        batch_data=batch_dev_data,
                                                                        epoch=epoch,
                                                                        device=device)
             valid_avg = (valid_score_em + valid_score_f1) / 2
-        logger.info("epoch=%d, ave_score_em=%.2f, ave_score_f1=%.2f, sum_loss=%.5f" %
-                    (epoch, valid_score_em, valid_score_f1, valid_loss))
+        logger.info("epoch=%d, ave_score_em=%.2f, ave_score_f1=%.2f, avg_score_avna=%.2f, sum_loss=%.5f" %
+                    (epoch, valid_score_em, valid_score_f1, valid_avna, valid_loss))
 
         # save model when best avg score
         if valid_avg > best_avg:
