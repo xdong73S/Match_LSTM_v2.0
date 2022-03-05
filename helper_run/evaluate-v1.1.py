@@ -38,6 +38,11 @@ def f1_score(prediction, ground_truth):
     f1 = (2 * precision * recall) / (precision + recall)
     return f1
 
+def avna_score(prediction, ground_truth):
+    if ground_truth == '__noans__':
+        return prediction == '__noans__'
+    else:
+        return prediction != '__noans__'
 
 def exact_match_score(prediction, ground_truth):
     return (normalize_answer(prediction) == normalize_answer(ground_truth))
@@ -52,11 +57,11 @@ def metric_max_over_ground_truths(metric_fn, prediction, ground_truths):
 
 
 def evaluate(dataset, predictions):
-    f1 = exact_match = total = 0
+    f1 = exact_match = avna = total = 0
     for article in dataset:
         for paragraph in article['paragraphs']:
             for qa in paragraph['qas']:
-                #total += 1
+                total += 1
                 if qa['id'] not in predictions:
                     message = 'Unanswered question ' + qa['id'] + \
                               ' will receive score 0.'
@@ -65,16 +70,22 @@ def evaluate(dataset, predictions):
                 ground_truths = list(map(lambda x: x['text'], qa['answers']))
                 prediction = predictions[qa['id']]
                 if len(ground_truths) > 0:
-                    total += 1
+                    #total += 1
                     exact_match += metric_max_over_ground_truths(
                         exact_match_score, prediction, ground_truths)
                     f1 += metric_max_over_ground_truths(
                         f1_score, prediction, ground_truths)
-
+                else:
+                    ground_truths = ['__noans__']
+                    exact_match += metric_max_over_ground_truths(
+                        exact_match_score, prediction, ground_truths)
+                    f1 += metric_max_over_ground_truths(
+                        f1_score, prediction, ground_truths)
+                avna += metric_max_over_ground_truths(avna_score, prediction, ground_truths)
     exact_match = 100.0 * exact_match / total
     f1 = 100.0 * f1 / total
-
-    return {'exact_match': exact_match, 'f1': f1}
+    avna = 100.0 * avna / total
+    return {'exact_match': exact_match, 'f1': f1, 'avna': avna}
 
 
 if __name__ == '__main__':

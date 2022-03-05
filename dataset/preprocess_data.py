@@ -235,8 +235,11 @@ class PreprocessData:
         :param sentence: DocText
         :return: word ids
         """
-        sentence = {'token': [], 'pos': [], 'ent': [], 'right_space': doc_text.right_space}
+        right_spaces = doc_text.right_space
+        right_spaces.insert(0,1)
 
+        sentence = {'token': [], 'pos': [], 'ent': [], 'right_space': right_spaces}
+        
         for i in range(len(doc_text)):
 
             # word
