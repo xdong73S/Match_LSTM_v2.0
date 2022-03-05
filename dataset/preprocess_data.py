@@ -140,6 +140,7 @@ class PreprocessData:
                     self._update_to_char(cur_question)
 
                 cur_question_doc = DocText(self._nlp, cur_question, self.preprocess_config)
+                print(cur_question_doc)
                 cur_question_ids = self._doctext_to_id(cur_question_doc)
 
                 # get em feature
@@ -234,7 +235,6 @@ class PreprocessData:
         :param sentence: DocText
         :return: word ids
         """
-
         sentence = {'token': [], 'pos': [], 'ent': [], 'right_space': doc_text.right_space}
 
         for i in range(len(doc_text)):
